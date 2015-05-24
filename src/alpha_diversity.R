@@ -2,6 +2,7 @@
 #Rscript alpha_diversity.R diversity_check.csv "Treatment 1" "Treatment 2" "Treatment 3" "Treatment 4" treatment "Clinical Outcome" testing_anova.pdf anova
 
 start.time <- Sys.time()
+
 require('ggplot2')
 require('grid')
 require('gridExtra')
