@@ -1,7 +1,0 @@
-namearrange <- c("Treatment 1","Treatment 2","Treatment 3","Treatment 4")
-namearrange[1:2]
-namearrange[1:4]
-namearrange[1,3]
-namearrange[c(1,3)]
-namearrange[c(1,2)]
-namearrange[c(1,4)]
