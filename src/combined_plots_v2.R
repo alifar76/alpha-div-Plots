@@ -1,14 +1,13 @@
-# How to run the script:
-#Rscript alpha_diversity.R diversity_check.csv "Treatment 1" "Treatment 2" "Treatment 3" "Treatment 4" treatment "Clinical Outcome" testing_kw.pdf kw
+#Rscript combined_plots_v2.R diversity_check.csv "Treatment 1" "Treatment 2" "Treatment 3" "Treatment 4" treatment "Clinical Outcome" testing_kw.pdf kw
 
-start.time <- Sys.time()
+#rm(list=ls())
 require('ggplot2')
 require('grid')
 require('gridExtra')
 
 
 # Multiple plot function: (http://www.cookbook-r.com/Graphs/Multiple_graphs_on_one_page_(ggplot2)/)
-multiplot <- function(..., plotlist=NULL, file, cols=2, layout=NULL) {
+multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
   # Make a list from the ... arguments and plotlist
   plots <- c(list(...), plotlist)
   numPlots = length(plots)
@@ -66,11 +65,15 @@ dot_plotting <- function(MYdata,namearrange,meta,ylabel,xlabel,comp1,comp2,comp3
 	pval.anova.test2 <- paste("p-value = ",ifelse(pval.anov2 < 0.05,paste(pval.anov2,"*",sep=""),pval.anov2),sep="")		# Anova p-value group 2 vs group 4
 	pval.anova.test3 <- paste("p-value = ",ifelse(pval.anov3 < 0.05,paste(pval.anov3,"*",sep=""),pval.anov3),sep="")		# Anova p-value group 3 vs group 4
 	
-	cmd0 <- paste('ggplot(MYdata, aes(x = factor(',meta,'), y =',divint,', fill=factor(',meta,'))) + geom_dotplot(binaxis = "y", stackdir = "center",position="dodge")',sep="")
+	cmd0 <- paste('ggplot(MYdata, aes(x = factor(',meta,'), y =',divint,', fill=factor(',meta,'))) + geom_dotplot(binaxis = "y", stackdir = "center",position="dodge") +
+	stat_summary(fun.y = median, fun.ymin = median, fun.ymax = median, geom = "crossbar", width = 0.4)',sep="")
 	cmd1 <- paste(cmd0,' + geom_segment(aes(x = 1, y = ',maxval/0.99,', xend = 2, yend = ',maxval/0.99,'))',sep="")
 	cmd2 <- paste(cmd1,' + geom_segment(aes(x = 1, y = ',maxval/0.95,', xend = 3, yend = ',maxval/0.95,'))',sep="")
 	cmd3 <- paste(cmd2,' + geom_segment(aes(x = 1, y = ',maxval/0.91,', xend = 4, yend = ',maxval/0.91,'))',sep="")
-	cmd4 <- paste(cmd3,' + xlab("',xlabel,'") + ylab("',ylabel,'") + guides(fill=guide_legend(title="Clinical Outcome"))',sep="")
+	cmd4 <- paste(cmd3,' + xlab("',xlabel,'") + ylab("',ylabel,'") + guides(fill=guide_legend(title="Clinical Outcome")) +
+	 theme(axis.text.x=element_text(size=15,color="black"),axis.title=element_text(size=15,color="black"),legend.text=element_text(size=15),legend.title=element_text(size=15))',sep="")
+	
+	
 	
 	# Code for adjusting axes titles, legend names, etc.
 	#theme(plot.title = element_text(lineheight=.8, face="bold",size=30),axis.text=element_text(size=20),
@@ -82,8 +85,8 @@ dot_plotting <- function(MYdata,namearrange,meta,ylabel,xlabel,comp1,comp2,comp3
 	color_anova <- paste('c("',paste(col_anov, collapse = '","'),'")',sep="")
 	color_kw <- paste('c("',paste(col_kw, collapse = '","'),'")',sep="")
 	
-	cmd_kw <- paste(cmd4,' + annotate("text", x = c(1.5,2,2.5), y = c(',maxval/0.97,',',maxval/0.93,',',maxval/0.89,'), label = c("',pval.kw.test1,'","',pval.kw.test2,'","',pval.kw.test3,'"), colour=',color_kw,', size=3)',sep="")
-	cmd_anova <- paste(cmd4,' + annotate("text", x = c(1.5,2,2.5), y = c(',maxval/0.97,',',maxval/0.93,',',maxval/0.89,'), label = c("',pval.anova.test1,'","',pval.anova.test2,'","',pval.anova.test3,'"), colour=',color_anova,', size=3)',sep="")
+	cmd_kw <- paste(cmd4,' + annotate("text", x = c(1.5,2,2.5), y = c(',maxval/0.97,',',maxval/0.93,',',maxval/0.89,'), label = c("',pval.kw.test1,'","',pval.kw.test2,'","',pval.kw.test3,'"), colour=',color_kw,', size=5)',sep="")
+	cmd_anova <- paste(cmd4,' + annotate("text", x = c(1.5,2,2.5), y = c(',maxval/0.97,',',maxval/0.93,',',maxval/0.89,'), label = c("',pval.anova.test1,'","',pval.anova.test2,'","',pval.anova.test3,'"), colour=',color_anova,', size=5)',sep="")
 	if (sigtest == "anova"){
 		finalfig <- eval(parse(text=cmd_anova))
 		return (finalfig)
@@ -94,21 +97,17 @@ dot_plotting <- function(MYdata,namearrange,meta,ylabel,xlabel,comp1,comp2,comp3
 }
 
 
+
+
 # Function to call all other functions
 main_function <- function(infile,namearrange,meta,xlabel,comp1,comp2,comp3,diversity_measures,ylabels,outfile,sigtest){
 	MYdata <- read.csv(infile, header = T, sep = ",", check.names = T, row.names = 1)
 	maxval1 <- ceiling(max(MYdata[,diversity_measures[1]]))
 	fg1 <- dot_plotting(MYdata,namearrange,meta,ylabels[1],xlabel,comp1,comp2,comp3,diversity_measures[1],maxval1,sigtest)
-	maxval2 <- ceiling(max(MYdata[,diversity_measures[2]]))
-	fg2 <- dot_plotting(MYdata,namearrange,meta,ylabels[2],xlabel,comp1,comp2,comp3,diversity_measures[2],maxval2,sigtest)
-	maxval3 <- max(MYdata[,diversity_measures[3]])
-	fg3 <- dot_plotting(MYdata,namearrange,meta,ylabels[3],xlabel,comp1,comp2,comp3,diversity_measures[3],maxval3,sigtest)
-	maxval4 <- ceiling(max(MYdata[,diversity_measures[4]]))
-	fg4 <- dot_plotting(MYdata,namearrange,meta,ylabels[4],xlabel,comp1,comp2,comp3,diversity_measures[4],maxval4,sigtest)
 	maxval5 <- ceiling(max(MYdata[,diversity_measures[5]]))
 	fg5 <- dot_plotting(MYdata,namearrange,meta,ylabels[5],xlabel,comp1,comp2,comp3,diversity_measures[5],maxval5,sigtest)
 	pdf(outfile,width=30,height=13)			# width 20,30 , height 8,13
-	multiplot(fg1,fg2,fg3,fg4,fg5)
+	multiplot(fg1,fg5)
 	dev.off()
 }
 
