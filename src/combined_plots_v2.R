@@ -1,7 +1,6 @@
 #Rscript combined_plots_v2.R diversity_check.csv "Treatment 1" "Treatment 2" "Treatment 3" "Treatment 4" treatment "Clinical Outcome" testing_kw.pdf kw
 
 #rm(list=ls())
-
 require('ggplot2')
 require('grid')
 require('gridExtra')
